@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .body{
+            background-color: linear-gradient(to right, rgb(158, 61, 61),#000); 
+            display: flex;
+            min-width: 100vw;
+            min-height: 100vh;   
+        }
+        .search-container{
+            transform: translate(500px,300px);
+            width: 30%;
+            border-bottom: 10% solid #a51d1daf;
+            /**background:  #e01994af;**/
+        }
+        .search-container > .search-box{
+            position: absolute;
+            border: 0;
+            font-size: 15px;
+            background: transparent;
+            width: 100%;
+            left: 3%;
+            margin-right: 20%;
+            margin-left: 10%;
+        }
+        .search-container:hover{
+            border-top: 0;
+            border-left: 0;
+            border-right: 0;
+            border-bottom: 2px solid #e01994af;
+
+        }
+        .search-container > .fa-times {
+            position: absolute;
+            left: 92%;
+            top: 2%;
+            
+        }
+        #clean{
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body onload="logic()">
+    <div class="search-container">
+        <i class="fa fa-search" aria-hidden="true"></i>
+        <input type="text" class="search-box" id="search" type="text" placeholder="search......" oninput="logic()">
+        <i class="fa fa-times" aria-hidden="true" id="clean" onclick="document.getElementById('search').value = '';  document.getElementById('clean').style.visibility='hidden';" ></i>
+    </div>
+    <script>
+        var y = document.getElementById("search");
+        var z = document.getElementById("clean");
+
+        function logic(){
+            if(y.value==''){
+                z.style.visibility='hidden';
+            }
+            else{
+                if(y.value!=''){
+                    z.style.visibility='visible';
+                }
+                else{
+                   logic();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
