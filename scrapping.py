@@ -1,8 +1,17 @@
-
-import requests, re, time, sqlite3
+import sys
+import os
+import requests, re, time, mysql.connector
 from bs4 import BeautifulSoup
 from justbackoff import Backoff
 
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="scrapper",
+  password="scrappy",
+  database="webpage_data"
+)
+
+cursor = mydb.cursor()
 
 def crawling_indexing(URL):
     Attributes = ['description','Description','keywords','keyword','Keywords','Keyword']
@@ -11,13 +20,14 @@ def crawling_indexing(URL):
     #collected_data = []
     link_stack = []
     link_stack.append(URL)
-    print(link_stack)
     while len(link_stack) != 0:   # traversing all the links
         #try:
         #    r = requests.get(link_stack[0])
         #except Exception as e:
         #    print("could not load page ")
-        r = requests.get(link_stack[0])
+        currentUrl = link_stack[0]
+        r = requests.get(currentUrl)
+        print('{}: {}'.format(r.status_code, currentUrl))
         #b = Backoff(min_ms=300000, max_ms=3600000, factor=2, jitter=False)
         if r.status_code == 200:
             c = r.content
@@ -35,7 +45,7 @@ def crawling_indexing(URL):
                             collected_data = []
                             collected_data.append(meta.attrs['content'])
                             #Storing collected link and data to database
-                            add_to_db(link_stack[0], collected_data[0], collected_data[1])
+                            add_to_db(currentUrl, 'adw', 'Abc')
                             collected_data.clear()
                         else:
                             print('could not find all required attributes for URl')
@@ -49,7 +59,6 @@ def crawling_indexing(URL):
             for link in parsed_content.find_all('a',attrs = {'href': re.compile("^https://")}):
                 if link.get('href') not in link_stack and link.get('href') not in parsed_links:
                     link_stack.append(link.get('href'))
-                #print(link_stack)
             
             parsed_links.add(link_stack.pop(0))
             #time.sleep(15) # Halting the loop for 15 second
@@ -60,23 +69,22 @@ def crawling_indexing(URL):
             #        link_stack.append(link.get('href'))
             #        print(link_stack)
         
-        elif r.status_code == 429:
-            #print("stop the program for 5 minutes......")
-            #time.sleep(1800)
-            #print("halts the program for :", b.duration(),"seconds")
-            #time.sleep(b.duration())
-            continue
         else:
-            print('could not load page: error {}'.format(r.status_code))
+            link_stack.append(currentUrl)
 
 
-def add_to_db(link, description, keywords):    
-    conn = sqlite3.connect('webpage_data')
-    cursor = conn.cursor()
-    cursor.execute("""INSERT into collected_links(webpages, description, keywords) values (?,?,?)""", (link, description, keywords))
-    conn.commit()
-    return cursor.execute("""SELECT * from webpage_data""") 
+def add_to_db(link, description, keywords):
+    sql = "INSERT INTO collected_links (webpages, description, keywords) VALUES (%s, %s, %s)"
+    val = (link, description, keywords)
+    cursor.execute(sql, val)
 
 
-crawling_indexing('https://www.geeksforgeeks.org/')
-
+if __name__ == '__main__':
+    try:
+        crawling_indexing('https://www.geeksforgeeks.org/')
+    except KeyboardInterrupt:
+        try:
+            mydb.commit()
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
