@@ -1,10 +1,23 @@
-import requests, re, datetime, mysql.connector
-from bs4 import BeautifulSoup
+from flask import Flask,request
+from flask.views import View
+from flask_restful import Api, Resource
 
-r = requests.get('https://www.geeksforgeeks.org/')
-c = r.content
-parsed_content = BeautifulSoup(c,"html.parser")
-#meta_list  = parsed_content.find_all("meta")
-#title = parsed_content.find(".//title").string
-title = parsed_content.find("title").text
-print(title)
+
+app = Flask(__name__)
+api = Api(app)
+
+class HelloWorld(Resource):
+    def get(self):
+        return {'hello' : 'world'}
+
+class MyView(View):
+    methods = ['GET', 'POST']
+    def dispatch_request(self):
+        if request.method == 'POST':
+            print("posted")
+app.add_url_rule('/myview', view_func=MyView.as_view('myview'))
+
+api.add_resource(HelloWorld, '/')
+
+if __name__ == '__main__':
+    app.run(debug=True)
